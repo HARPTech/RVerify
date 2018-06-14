@@ -427,6 +427,9 @@ class Visitor(NodeVisitor):
         self.addToCurrentNode(w)
         self.active.append(w)
 
+    def visit_Load(self, node):
+        self.logger.debug("Visiting Load!")
+
     def visit_Return(self, node):
         self.logger.debug("Returning from current function.")
         pass
