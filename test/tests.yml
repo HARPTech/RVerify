@@ -1,0 +1,68 @@
+# This file contains some test definitions for the
+# parser. They must run cleanly for the code to pass as correct.
+
+tests:
+  - test: If
+    source: |
+        if foo > 1:
+          bar = 1
+    smt: |
+        (assert (=> (> foo 1 ) (= bar 1 )))
+    expected_variables:
+      - foo
+      - bar
+  - test: If Else
+    source: |
+        if foo > 1:
+          bar = 1
+        else:
+          bar = 2
+    smt: |
+        (assert (=> (> foo 1 ) (= bar 1 )))
+        (assert (=> (not (> foo 1 )) (= bar 2 )))
+    expected_variables:
+      - foo
+      - bar
+  - test: While
+    source: |
+        while True:
+          bar = 1
+    smt: |
+        (assert (= bar 1 ))
+    expected_variables:
+      - bar
+  - test: Simple Arithmetic
+    source: |
+      foo = 10 * bar + 1
+    smt: |
+        (assert (= foo (+(* 10 bar ) 1 )))
+    expected_variables:
+      - foo
+      - bar
+  - test: More complex Arithmetic
+    source: |
+      foo = 10 * 20 * 30 / (1 + 10 - 1)
+    smt: |
+        (assert (= foo (/ (* (* 10 20 ) 30 )(- (+ 1 10 ) 1 ))))
+    expected_variables:
+      - foo
+  - test: tan and atan
+    source: |
+      foo = math.tan(1)
+      bar = math.atan(foo)
+    smt: |
+      (assert (= foo (tan 1 )))
+      (assert (= bar (atan foo )))
+    expected_variables:
+      - foo
+      - bar
+  - test: Registry retrieval
+    source: |
+      steer_direction = registry.getInt16(RR.Int16_MVMT_STEER_DIRECTION)
+    smt: |
+      (assert (= steer_direction _steer_direction_ ))
+    expected_variables:
+      # _steer_direction_ is an internal variable
+      # with predefined properties.
+      - steer_direction
+      
