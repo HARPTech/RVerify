@@ -19,6 +19,7 @@ if __name__ == "__main__":
     argparser.add_argument('-f', help='Input file', required=False)
     argparser.add_argument('--precision', help='Precision of the trigonometric approximations.', required=False, default=1, type=float)
     argparser.add_argument('--stdin', action='store_true', help='Use stdin instead of file.', required=False)
+    argparser.add_argument('--check', action='store_true', help='Check the given source code using the z3 SMT parser against the embedded rule-set.', default=False)
     argparser.add_argument('--print-smt', action='store_true', help='Print full generated SMT code.', default=False)
     argparser.add_argument('--display-approximations', action='store_true', help='Display trigonometric approximations. Needs matplotlib.', default=False)
 
@@ -55,15 +56,23 @@ if __name__ == "__main__":
     visitor = Visitor()
     visitor.visit(astTree)
 
+    approximations = smt_gen.generate("tan", precision)
+    approximations += smt_gen.generate("atan", precision)
+
     if args.display_approximations:
         smt_gen.generate_and_display("tan", precision)
         smt_gen.generate_and_display("atan", precision)
 
-    if args.print_smt:
-        smt = str(visitor)
+    visitorSMT = str(visitor)
 
-        approximations = smt_gen.generate("tan", precision)
-        approximations += smt_gen.generate("atan", precision)
+    smt = predefined.logic + predefined.internals + approximations + visitorSMT
+
+    if args.check:
+        from RVerify.checker.checker import Checker as Checker
+        checker = Checker(visitor, smt)
+
+    if args.print_smt:
+        smt = visitorSMT
 
         smt = approximations + smt
 
