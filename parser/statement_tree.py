@@ -18,7 +18,7 @@ class StatementTree():
 
     def __str__(self):
         s, store = self.getSMT()
-        
+
         s = store.getDeclarationsStr() + s
 
         return s
