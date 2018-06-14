@@ -4,9 +4,9 @@ import unittest
 import yaml
 
 import typed_ast.ast3
-import RVerify.parser.Visitor
+import RVerify.parser.visitor
 
-from RVerify.parser.Visitor import Visitor as Visitor
+from RVerify.parser.visitor import Visitor as Visitor
 
 dirpath = os.path.dirname(os.path.realpath(__file__))
 

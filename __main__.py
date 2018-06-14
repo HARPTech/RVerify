@@ -2,9 +2,9 @@ import argparse
 
 import logging
 import parser
-import RVerify.parser.Visitor
+import RVerify.parser.visitor
 
-from RVerify.parser.Visitor import Visitor as Visitor
+from RVerify.parser.visitor import Visitor as Visitor
 
 import sys
 import typed_ast.ast3
