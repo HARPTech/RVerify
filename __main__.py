@@ -63,13 +63,12 @@ if __name__ == "__main__":
         smt_gen.generate_and_display("tan", precision)
         smt_gen.generate_and_display("atan", precision)
 
-    visitorSMT = str(visitor)
-
-    smt = predefined.logic + predefined.internals + approximations + visitorSMT
+    visitorSMT, lines = visitor.getFullSMT()
 
     if args.check:
         from RVerify.checker.checker import Checker as Checker
-        checker = Checker(visitor, smt)
+        checker = Checker(visitor, predefined.logic + predefined.internals + approximations + visitorSMT, lines)
+        checker.check()
 
     if args.print_smt:
         smt = visitorSMT

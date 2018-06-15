@@ -17,6 +17,9 @@ class Visitor(NodeVisitor):
         self.list_expected = 0
         self.wrap_to_real = 0
 
+    def getFullSMT(self):
+        return self.tree.getFullSMT()
+
     def currentNode(self):
         if len(self.active) > 0:
             return self.active[len(self.active) - 1]

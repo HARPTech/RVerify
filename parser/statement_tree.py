@@ -16,9 +16,15 @@ class StatementTree():
             s += re.sub(' +', ' ', node.__str__(level=0, var_store=store)).strip() + "\n"
         return s, store
 
-    def __str__(self):
+    def getFullSMT(self):
         s, store = self.getSMT()
 
+        lines = s.count("\n")
         s = store.getDeclarationsStr() + s
+
+        return s, lines
+
+    def __str__(self):
+        s, lines = self.getFullSMT()
 
         return s
