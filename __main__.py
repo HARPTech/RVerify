@@ -48,6 +48,19 @@ if __name__ == "__main__":
         logging.error("Must provide source as input either through file or stdin!")
         exit(-1)
 
+    # Filter source for keyword RVERIFY_BEGIN
+
+    phraseFound = False
+    filteredSource = ""
+    for line in source.splitlines():
+        if phraseFound:
+            filteredSource += line + "\n"
+        if "RVERIFY_BEGIN" in line:
+            phraseFound = True
+
+    if phraseFound:
+        source = filteredSource
+
     precision = args.precision
 
     lineLookupTable = LineLookupTable(source)
