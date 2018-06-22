@@ -5,6 +5,7 @@ import parser
 import RVerify.parser.visitor
 
 from RVerify.parser.visitor import Visitor as Visitor
+from RVerify.parser.line_lookup_table import LineLookupTable as LineLookupTable
 import RVerify.parser.predefined as predefined
 
 import sys
@@ -49,11 +50,13 @@ if __name__ == "__main__":
 
     precision = args.precision
 
+    lineLookupTable = LineLookupTable(source)
+
     # Commence Parsing
 
     astTree = typed_ast.ast3.parse(source, mode='exec')
 
-    visitor = Visitor()
+    visitor = Visitor(lineLookupTable)
     visitor.visit(astTree)
 
     approximations = smt_gen.generate("tan", precision)
@@ -63,11 +66,11 @@ if __name__ == "__main__":
         smt_gen.generate_and_display("tan", precision)
         smt_gen.generate_and_display("atan", precision)
 
-    visitorSMT, lines = visitor.getFullSMT()
+    visitorSMT, lines, = visitor.getFullSMT()
 
     if args.check:
         from RVerify.checker.checker import Checker as Checker
-        checker = Checker(visitor, predefined.logic + predefined.internals + approximations + visitorSMT, lines)
+        checker = Checker(visitor, predefined.logic + predefined.internals + approximations + visitorSMT, lines, lineLookupTable)
         checker.check()
 
     if args.print_smt:

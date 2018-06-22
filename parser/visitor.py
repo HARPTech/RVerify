@@ -8,14 +8,15 @@ from .node import Node as Node
 from .statement_tree import StatementTree as StatementTree
 
 class Visitor(NodeVisitor):
-    def __init__(self):
+    def __init__(self, lineLookupTable = None):
         self.logger = logging.getLogger('Visitor')
         self.logger.setLevel(logging.DEBUG)
         self.logger.info("Created Visitor instance.")
         self.active = []
-        self.tree = StatementTree()
+        self.tree = StatementTree(lineLookupTable)
         self.list_expected = 0
         self.wrap_to_real = 0
+        self.lineLookupTable = lineLookupTable
 
     def getFullSMT(self):
         return self.tree.getFullSMT()
@@ -48,7 +49,7 @@ class Visitor(NodeVisitor):
             for child in typed_ast.ast3.iter_child_nodes(node):
                 wrapping = self.wrap_to_real > 0 and self.wrap_to_real <= 1 and type(child) is not typed_ast.ast3.Load
                 if wrapping:
-                    wrapper = Node("FunctionCall", "to_real")
+                    wrapper = Node("FunctionCall", "to_real", pyline=node.lineno)
                     self.addToCurrentNode(wrapper)
                     self.active.append(wrapper)
                     self.wrap_to_real += 1
@@ -81,7 +82,7 @@ class Visitor(NodeVisitor):
     @recursive
     def visit_Assign(self, node):
         self.logger.debug("Visiting Assignment! Recursive solution.")
-        assignment = Node("Assignment", "=")
+        assignment = Node("Assignment", "=", pyline=node.lineno)
         self.addToCurrentNode(assignment)
         self.active.append(assignment)
 
@@ -89,7 +90,7 @@ class Visitor(NodeVisitor):
     def visit_Name(self, node):
         self.logger.debug("Visiting Name of a variable! Name=" + node.id)
 
-        n = Node("Name", node.id)
+        n = Node("Name", node.id, pyline=node.lineno)
         self.addToCurrentNode(n)
 
         # Not added to active nodes, because a name is just that, a name. It has no more child nodes.
@@ -100,7 +101,7 @@ class Visitor(NodeVisitor):
     def visit_Num(self, node):
         self.logger.debug("Visiting Num! Value=" + str(node.n))
 
-        num = Node("Num", str(node.n))
+        num = Node("Num", str(node.n), pyline=node.lineno)
         self.addToCurrentNode(num)
 
     def visit_Attribute(self, node):
@@ -111,51 +112,51 @@ class Visitor(NodeVisitor):
         
         if attr == "math.pi":
             self.logger.debug("Pi detected, inserting as value.")
-            num = Node("Num", str(math.pi))
+            num = Node("Num", str(math.pi), pyline=node.lineno)
             self.addToCurrentNode(num)
             visited = True
 
         # Attributes with rules
         
         if attr == "RR.Int16_MVMT_FORWARD_VELOCITY":
-            rule = Node("NAMEREF", "(to_real _forward_velocity_)")
+            rule = Node("NAMEREF", "(to_real _forward_velocity_)", pyline=node.lineno)
             self.addToCurrentNode(rule)
             visited = True
         if attr == "RR.Int16_MVMT_STEER_DIRECTION":
-            rule = Node("NAMEREF", "_steer_direction_")
+            rule = Node("NAMEREF", "_steer_direction_", pyline=node.lineno)
             self.addToCurrentNode(rule)
             visited = True
         if attr == "RR.Int16_MVMT_MOTOR_PWM_FL":
-            rule = Node("NAMEREF", "_motor_fl_")
+            rule = Node("NAMEREF", "_motor_fl_", pyline=node.lineno)
             self.addToCurrentNode(rule)
             visited = True
         if attr == "RR.Int16_MVMT_MOTOR_PWM_FR":
-            rule = Node("NAMEREF", "_motor_fr_")
+            rule = Node("NAMEREF", "_motor_fr_", pyline=node.lineno)
             self.addToCurrentNode(rule)
             visited = True
         if attr == "RR.Int16_MVMT_MOTOR_PWM_RL":
-            rule = Node("NAMEREF", "_motor_rl_")
+            rule = Node("NAMEREF", "_motor_rl_", pyline=node.lineno)
             self.addToCurrentNode(rule)
             visited = True
         if attr == "RR.Int16_MVMT_MOTOR_PWM_RR":
-            rule = Node("NAMEREF", "_motor_rr_")
+            rule = Node("NAMEREF", "_motor_rr_", pyline=node.lineno)
             self.addToCurrentNode(rule)
             visited = True
 
         if attr == "RR.Uint8_MVMT_SERVO_FL_POSITION":
-            rule = Node("NAMEREF", "_servo_fl_")
+            rule = Node("NAMEREF", "_servo_fl_", pyline=node.lineno)
             self.addToCurrentNode(rule)
             visited = True
         if attr == "RR.Uint8_MVMT_SERVO_FR_POSITION":
-            rule = Node("NAMEREF", "_servo_fr_")
+            rule = Node("NAMEREF", "_servo_fr_", pyline=node.lineno)
             self.addToCurrentNode(rule)
             visited = True
         if attr == "RR.Uint8_MVMT_SERVO_RL_POSITION":
-            rule = Node("NAMEREF", "_servo_rl_")
+            rule = Node("NAMEREF", "_servo_rl_", pyline=node.lineno)
             self.addToCurrentNode(rule)
             visited = True
         if attr == "RR.Uint8_MVMT_SERVO_RR_POSITION":
-            rule = Node("NAMEREF", "_servo_rr_")
+            rule = Node("NAMEREF", "_servo_rr_", pyline=node.lineno)
             self.addToCurrentNode(rule)
             visited = True
 
@@ -166,14 +167,14 @@ class Visitor(NodeVisitor):
     @recursive
     def visit_BinOp(self, node):
         self.logger.debug("Visiting BinOp! This operation is between a " + type(node.left).__name__ + " and a " + type(node.right).__name__ + ", which could also be variables.")
-        binop = Node("BinOp")
+        binop = Node("BinOp", pyline=node.lineno)
         self.addToCurrentNode(binop)
         self.active.append(binop)
 
     @recursive
     def visit_UnaryOp(self, node):
         self.logger.debug("Visiting UnaryOp!")
-        unop = Node("UnOp")
+        unop = Node("UnOp", pyline=node.lineno)
         self.addToCurrentNode(unop)
         self.active.append(unop)
 
@@ -257,7 +258,7 @@ class Visitor(NodeVisitor):
 
     def visit_If(self, node):
         self.logger.debug("Visiting If! Manual Recursive solution.")
-        iff = Node("If", "=> ")
+        iff = Node("If", "=> ", pyline=node.lineno)
         self.addToCurrentNode(iff)
         self.active.append(iff)
 
@@ -265,7 +266,7 @@ class Visitor(NodeVisitor):
         self.visit(node.test)
 
         # Add Body
-        body = Node("IfBody")
+        body = Node("IfBody", pyline=node.lineno)
         self.addToCurrentNode(body)
         self.active.append(body)
         for n in node.body:
@@ -273,7 +274,7 @@ class Visitor(NodeVisitor):
 
         # Add else branch
         self.active.pop()
-        orelse = Node("IfElse")
+        orelse = Node("IfElse", pyline=node.lineno)
         self.addToCurrentNode(orelse)
         self.active.append(orelse)
         for n in node.orelse:
@@ -285,7 +286,7 @@ class Visitor(NodeVisitor):
     @recursive
     def visit_Compare(self, node):
         self.logger.debug("Visiting Compare! Recursive solution.")
-        compare = Node("Compare")
+        compare = Node("Compare", pyline=node.lineno)
         self.addToCurrentNode(compare)
         self.active.append(compare)
 
@@ -332,7 +333,7 @@ class Visitor(NodeVisitor):
                 list_expected_call = True
 
         if strrep != "" and strrep != "---":
-            call = Node(name, strrep)
+            call = Node(name, strrep, pyline=node.lineno)
             self.addToCurrentNode(call)
             self.active.append(call)
 
@@ -351,13 +352,13 @@ class Visitor(NodeVisitor):
 
     @recursive
     def visit_For(self, node):
-        f = Node("For")
+        f = Node("For", pyline=node.lineno)
         self.addToCurrentNode(f)
         self.active.append(f)
 
     @recursive
     def visit_While(self, node):
-        w = Node("While")
+        w = Node("While", pyline=node.lineno)
         self.addToCurrentNode(w)
         self.active.append(w)
 

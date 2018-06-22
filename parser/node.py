@@ -3,7 +3,7 @@ import logging
 class Node():
     list_typenames = ["While", "For"]
     
-    def __init__(self, typename = "Node", strrep = ""):
+    def __init__(self, typename = "Node", strrep = "", pyline=0):
         self.logger = logging.getLogger('Node:' + typename)
         self.logger.setLevel(logging.DEBUG)
 
@@ -13,6 +13,7 @@ class Node():
         self.left_delimiter = "("
         self.right_delimiter = ")"
         self.node_delimiter = ""
+        self.pyline = pyline
 
         # Loops in this use-case are not represented as nodes.
         if typename in self.list_typenames:
@@ -30,10 +31,13 @@ class Node():
     def add(self, node):
         self.children.append(node)
 
-    def __str__(self, level=-100000, var_store=None):
+    def __str__(self, level=-100000, line = 0, var_store=None, lineLookupTable = None):
         if len(self.children) <= 1 and self.typename != "FunctionCall":
             self.left_delimiter = " "
             self.right_delimiter = " "
+
+        if lineLookupTable is not None:
+            lineLookupTable.insertLine(self.pyline, line + 1)
 
         if self.typename in self.list_typenames:
             level -= 1
@@ -66,10 +70,10 @@ class Node():
                     if node.typename == "NAMEREF":
                         self.strrep = "(assert (= " + node.strrep
                     else:
-                        self.strrep += " (to_int " + node.__str__(level=level+1,var_store=var_store) + ")))"
+                        self.strrep += " (to_int " + node.__str__(level=level+1,line=line+1,var_store=var_store,lineLookupTable=lineLookupTable) + ")))"
             else:
                 for node in self.children:
-                    self.strrep = node.__str__(level=level+1,var_store=var_store)
+                    self.strrep = node.__str__(level=level+1,var_store=var_store,line=line+1,lineLookupTable=lineLookupTable)
             
             return self.strrep 
 
@@ -89,15 +93,15 @@ class Node():
             for node in body.children:
                 s += self.left_delimiter
                 s += "assert (" + self.strrep
-                s += self.children[0].__str__(level=level+1, var_store=var_store) + " "
-                s += node.__str__(level=level + 1, var_store=var_store)
+                s += self.children[0].__str__(level=level+1, var_store=var_store,line=line+1,lineLookupTable=lineLookupTable) + " "
+                s += node.__str__(level=level + 1, var_store=var_store,line=line+1,lineLookupTable=lineLookupTable)
                 s += self.right_delimiter + ")\n"
             # There is an else branch that can be handled.
             orelse = self.children[2]
             for node in orelse.children:
                 s += self.left_delimiter
-                s += "assert (" + self.strrep + " (not " + self.children[0].__str__(level=level+1, var_store=var_store) + ") "
-                s += node.__str__(level=level + 1, var_store=var_store)
+                s += "assert (" + self.strrep + " (not " + self.children[0].__str__(level=level+1, var_store=var_store,line=line+1,lineLookupTable=lineLookupTable) + ") "
+                s += node.__str__(level=level + 1, var_store=var_store,line=line+1,lineLookupTable=lineLookupTable)
                 s += self.right_delimiter + ")\n"
         else:
             if level == 0:
@@ -109,7 +113,12 @@ class Node():
 
             s += self.strrep
             for child in self.children:
-                s += child.__str__(level=level + 1, var_store=var_store) + self.node_delimiter
+                s += child.__str__(level=level + 1, var_store=var_store,line=line,lineLookupTable=lineLookupTable) + self.node_delimiter
+
+                if lineLookupTable is not None and self.node_delimiter == "\n":
+                    lineLookupTable.insertLine(child.pyline, line)
+                    line += 1
+
             s += self.right_delimiter
 
         return s

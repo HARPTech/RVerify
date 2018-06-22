@@ -5,47 +5,62 @@ import multiprocessing
 multiprocessing.cpu_count()
 from concurrent.futures import ThreadPoolExecutor as ThreadPoolExecutor
 
+from RVerify.parser import predefined as predefined
+
 import threading
 
 class Checker():
-    def __init__(self, tree, visitorSMT, checkLen):
+    def __init__(self, tree, visitorSMT, checkLen, lineLookupTable):
         self.tree = tree
         self.visitorSMT = visitorSMT
         self.checkLen = checkLen
         self.logger = logging.getLogger('Checker')
         self.found = False
         self.foundLock = threading.Lock()
+        self.lineLookupTable = lineLookupTable
+        self.fullSMTLen = self.visitorSMT.count("\n")
 
-    def checkSolver(self, stmt, endLine):
-        """Check the given solver for correctness and return True if it is satisfyable."""
+    def getCommonFailureAssertions(self, ctx):
+        return predefined.checks
+
+    def checkSolver(self, stmt, endLine, expanderGenerator):
+        """Check the given statement for correctness and return True if it is satisfyable."""
         # Context Creation
         ctx = z3.Context()
+        model = None
 
-        #print("CHECKING STATEMENT: " + stmt)
-        
         sat = False
         try:
             s = z3.Solver(ctx=ctx)
+
+            if expanderGenerator is not None:
+                stmt += expanderGenerator(ctx)
+
             expression = z3.parse_smt2_string(stmt, ctx=ctx)
             s.add(expression)
             check = s.check()
             sat = check.r > 0
+
+            if sat:
+                model = s.model()
         except z3.Z3Exception as e:
-            self.logger.error("Invalid SMT produced in permutation!")
+            self.logger.error("Invalid SMT!")
 
-        return sat, endLine
+        return sat, endLine, model, ctx
 
-    def debugStatement(self, statement, expectedSat):
+    def debugStatement(self, statement, expectedSat, expanderGenerator=None):
         """Spawns as many threads as the current computer has CPUs and analyses the given statements line-per-line."""
 
         # Define a TaskQueue for coming check tasks.
         threadCount = multiprocessing.cpu_count()
+        # threadCount = 1
         executor = ThreadPoolExecutor(max_workers=threadCount)
 
         # Generate statements.
         lines = statement.splitlines()
         statements = []
         statements.append([statement, self.checkLen])
+        
         for i in range(1, self.checkLen):
             statements.append(["\n".join(lines[0:-i]), self.checkLen - i])
 
@@ -53,17 +68,18 @@ class Checker():
 
         # Parse SMT2 Strings
         for stmt in statements:
-            resultFutures.append(executor.submit(self.checkSolver, stmt[0], stmt[1]))
+            resultFutures.append(executor.submit(self.checkSolver, stmt[0], stmt[1], expanderGenerator))
 
         # Wait for all results.
         executor.shutdown(wait=False)
 
         # Print results.
         for future in resultFutures:
-            sat, line = future.result()
+            sat, line, model, ctx = future.result()
             if sat != expectedSat:
-                return False, line
-        return True
+                return False, line, model, ctx
+
+        return True, 0, None, None
 
     def check(self):
         # Checks the tree using the z3 SMT parser.
@@ -84,11 +100,35 @@ class Checker():
 
         if check:
             # Code passes, begin checking failure conditions.
-            print("CODE SOUNDNESS PASSED")
+            print("CODE SOUNDNESS PASSED, CHECK FAILURE STATES")
 
+            try:
+                expression = z3.parse_smt2_string(self.visitorSMT + predefined.checks)
+                s.add(expression)
+            except z3.Z3Exception as e:
+                self.logger.error("Invalid SMT produced!")
+                return False
+
+            # Pre-Check if there are any problems with the assertions.
+            check = s.check().r > 0
+
+            if check is False:
+                print("SUCCESS! NO FAILURE STATES DETECTED!")
+            else:
+                print("FAILURE STATES DETECTED, DETAILED ANALYSIS FOLLOWS")
+            
+                resultAsExpected, line, model, ctx = self.debugStatement(self.visitorSMT, False, self.getCommonFailureAssertions)
+                if not resultAsExpected:
+                    print("ERROR: Line in SMT: " + str(line))
+                    pyline = self.lineLookupTable.getLineInPy(line)
+                    print("ERROR: Line in Python: " + str(pyline))
+                    print(self.lineLookupTable.getSurroundingLines(pyline))
+                    print(str(model))
         else:
             # Begin debugging. This happens by removing one line at a time.
             print("CODE NOT PASSED, DETAILED ANALYSIS")
-            resultAsExpected, line = self.debugStatement(self.visitorSMT, False)
+            resultAsExpected, line, model, ctx = self.debugStatement(self.visitorSMT, False)
             if not resultAsExpected:
-                print("ERROR: Line " + str(line))
+                pyline = self.lineLookupTable.getLineInPy(line)
+                print("ERROR: Line in Python: " + str(pyline))
+                print(self.lineLookupTable.getSurroundingLines(pyline))
