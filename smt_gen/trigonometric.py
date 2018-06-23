@@ -5,16 +5,16 @@ limit_linear = 5000
 limit = 50000
 
 def gen_space(scale):
-    linearRange = np.arange(0, limit_linear - (limit_linear / 20), 200 * (1 / scale))
-    linearRange2 = np.arange(0, limit - (limit / 20), 8000 * (1 / scale))
+    #linearRange = np.arange(0, limit_linear - (limit_linear / 20), (limit_linear * 200))
+    linearRange2 = np.arange(0, limit - (limit / 20), 8000 * (1 / (scale * 3)))
 
     logSpace = np.logspace(0, 3.0, num=10)
 
     inverseLogSpace = limit - logSpace
 
     c = []
-    for i in linearRange:
-        c.append(i)
+    #for i in linearRange:
+    #    c.append(i)
     for i in linearRange2:
         c.append(i)
     for i in inverseLogSpace:

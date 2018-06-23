@@ -101,6 +101,7 @@ class Checker():
         if check:
             # Code passes, begin checking failure conditions.
             print("CODE SOUNDNESS PASSED, CHECK FAILURE STATES")
+            s = z3.Solver()
 
             try:
                 expression = z3.parse_smt2_string(self.visitorSMT + predefined.checks)
@@ -115,15 +116,9 @@ class Checker():
             if check is False:
                 print("SUCCESS! NO FAILURE STATES DETECTED!")
             else:
-                print("FAILURE STATES DETECTED, DETAILED ANALYSIS FOLLOWS")
-            
-                resultAsExpected, line, model, ctx = self.debugStatement(self.visitorSMT, False, self.getCommonFailureAssertions)
-                if not resultAsExpected:
-                    print("ERROR: Line in SMT: " + str(line))
-                    pyline = self.lineLookupTable.getLineInPy(line)
-                    print("ERROR: Line in Python: " + str(pyline))
-                    print(self.lineLookupTable.getSurroundingLines(pyline))
-                    print(str(model))
+                print("FAILURE STATES DETECTED!")
+                print(s.model())
+
         else:
             # Begin debugging. This happens by removing one line at a time.
             print("CODE NOT PASSED, DETAILED ANALYSIS")

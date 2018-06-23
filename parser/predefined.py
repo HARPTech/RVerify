@@ -21,11 +21,12 @@ internals = """
 (declare-fun _servo_rl_ () Int)
 (declare-fun _servo_rr_ () Int)
 
+;; Formula taken from https://gamedev.stackexchange.com/a/33445
 (define-fun mapReal ((x Real) (min Real) (max Real) (outMin Real) (outMax Real)) Real 
-    (* (/ (- x min) (- max min)) (+ (- outMax outMin) outMin))) 
+    (+ (* (/ (- x min) (- max min)) (- outMax outMin)) outMin))
  
 (define-fun mapInt ((x Int) (min Int) (max Int) (outMin Int) (outMax Int)) Int 
-    (* (div (- x min) (- max min)) (+ (- outMax outMin) outMin))) 
+    (+ (* (div (- x min) (- max min)) (- outMax outMin)) outMin))
 
 (declare-fun pi () Real)
 (assert (= pi 3.14159265359))
@@ -58,10 +59,10 @@ checks = """
 ;; Combined Properties
 ;; -------------------
 
-(=> (and (>= _servo_fl_ 128) (<= _servo_fr_ 128)) (or (and (>= _motor_fl_ 0) (<= _motor_fr_ 0)) (and (<= _motor_fl_ 0) (>= _motor_fr_ 0))))
-(=> (and (>= _servo_rl_ 128) (<= _servo_rr_ 128)) (or (and (>= _motor_rl_ 0) (<= _motor_rr_ 0)) (and (<= _motor_rl_ 0) (>= _motor_rr_ 0))))
-(=> (and (>= _servo_fl_ 128) (>= _servo_fr_ 128)) (or (and (>= _motor_fl_ 0) (>= _motor_fr_ 0)) (and (<= _motor_fl_ 0) (<= _motor_fr_ 0))))
-(=> (and (>= _servo_rl_ 128) (>= _servo_rr_ 128)) (or (and (>= _motor_rl_ 0) (>= _motor_rr_ 0)) (and (<= _motor_rl_ 0) (<= _motor_rr_ 0))))
+(=> (and (> _servo_fl_ 128) (< _servo_fr_ 128)) (or (and (>= _motor_fl_ 0) (<= _motor_fr_ 0)) (and (<= _motor_fl_ 0) (>= _motor_fr_ 0))))
+(=> (and (> _servo_rl_ 128) (< _servo_rr_ 128)) (or (and (>= _motor_rl_ 0) (<= _motor_rr_ 0)) (and (<= _motor_rl_ 0) (>= _motor_rr_ 0))))
+(=> (and (> _servo_fl_ 128) (> _servo_fr_ 128)) (or (and (>= _motor_fl_ 0) (>= _motor_fr_ 0)) (and (<= _motor_fl_ 0) (<= _motor_fr_ 0))))
+(=> (and (> _servo_rl_ 128) (> _servo_rr_ 128)) (or (and (>= _motor_rl_ 0) (>= _motor_rr_ 0)) (and (<= _motor_rl_ 0) (<= _motor_rr_ 0))))
 
 )))
 """
