@@ -36,7 +36,7 @@ if __name__ == "__main__":
     
     if args.stdin:
         # Read the source from standard input.
-        source = sys.stdin.readlines()
+        source = sys.stdin.read()
 
     if args.f:
         # Read from file.
