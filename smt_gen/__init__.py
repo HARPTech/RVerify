@@ -38,7 +38,7 @@ def display(approx, lst, lst2, scale):
     from . import output
     import matplotlib
     import numpy as np
-    matplotlib.use("Qt5Agg")
+    matplotlib.use("TkAgg")
     import matplotlib.pyplot as plt
 
     if lst2 is None:
