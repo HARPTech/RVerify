@@ -5,11 +5,11 @@ logic = """
 internals = """
 (declare-fun _forward_velocity_ () Int)
 (declare-fun _steer_direction_ () Int)
-(assert (>= _forward_velocity_ -32768))
+(assert (>= _forward_velocity_ (- 32768)))
 (assert (<= _forward_velocity_ 32767))
 
 (assert (or 
-    (and (>= _steer_direction_ -32768) (<= _steer_direction_ -10))
+    (and (>= _steer_direction_ (- 32768)) (<= _steer_direction_ (- 10)))
     (and (>= _steer_direction_ 10) (<= _steer_direction_ 32767))))
 
 (declare-fun _motor_fl_ () Int)
@@ -35,13 +35,13 @@ internals = """
 checks = """
 (assert (not (and
 
-(>= _motor_fl_ -255)
+(>= _motor_fl_ (- 255))
 (<= _motor_fl_ 255)
-(>= _motor_fr_ -255)
+(>= _motor_fr_ (- 255))
 (<= _motor_fr_ 255)
-(>= _motor_rl_ -255)
+(>= _motor_rl_ (- 255))
 (<= _motor_rl_ 255)
-(>= _motor_rr_ -255)
+(>= _motor_rr_ (- 255))
 (<= _motor_rr_ 255)
 
 (=> (or (> _steer_direction_ 1) (< _steer_direction_ (- 1)))
