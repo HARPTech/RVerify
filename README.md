@@ -61,5 +61,5 @@ at [github.com/HARPTech/RVerify](https://github.com/HARPTech/RVerify). Contribut
 are welcome and will be merged into the repository after they have been reviewed
 in the internal system.
 
-Another related repository of this project is [RTest](../RTest), providing a visualisation
+Another related repository of this project is [RTest](https://github.com/HARPTech/RTest), providing a visualisation
 of regulation kernels.
