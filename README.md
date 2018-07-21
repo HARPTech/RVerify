@@ -51,3 +51,15 @@ The checker internally used a set accuracy scale for the trigonometric lookup ta
 scale can be made more exact or more lenient. For this functionality, the `--precision` switch
 is used. Values > 1 make the checker more exact and compute times longer, values < 1 
 do the opposite.
+
+Contributing and Mode of Development
+------------------------------------
+
+This repository is hosted at [phabricator.harptech.eu](https://phabricator.harptech.eu).
+A public mirror is provided
+at [github.com/HARPTech/RVerify](https://github.com/HARPTech/RVerify). Contributions
+are welcome and will be merged into the repository after they have been reviewed
+in the internal system.
+
+Another related repository of this project is [RTest](../RTest), providing a visualisation
+of regulation kernels.
