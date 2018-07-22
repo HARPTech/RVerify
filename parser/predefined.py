@@ -1,5 +1,5 @@
 logic = """
-(set-logic AUFNIRA)
+(set-logic QF_UFNIRA)
 """
 
 internals = """
