@@ -14,7 +14,7 @@ Install the python dependencies from `requirements.txt`. The dependencies are:
 	PyYAML==3.12
 	typed-ast==1.1.0
 	z3-solver==4.5.1.0.post2
-	
+
 On Ubuntu, the following packages are also needed:
 
     python3-tk
@@ -22,17 +22,19 @@ On Ubuntu, the following packages are also needed:
 Example Usage
 -------------
 
+These examples are given from the parent directory of this repository.
+
 ### Check a given Regulation Kernel for known failure states 
 
-    python3 -m RVerify -f example/kernel_code.py --check
+    python3 -m RVerify -f RVerify/example-rk/kernel_code.py --check
 	
 ### Show the used approximations for trigonometric functions
 
-    python3 -m RVerify -f example/kernel_code.py --display-approximations
+    python3 -m RVerify -f RVerify/example-rk/kernel_code.py --display-approximations
 
 ### Display internally generated SMT2 code
 
-    python3 -m RVerify -f example/kernel_code.py --print-smt 
+    python3 -m RVerify -f RVerify/example-rk/kernel_code.py --print-smt 
 	
 If this command is used to be directly processed with z3, the following switch is
 also useful `--smt-include-get-model`. This activates the output of
@@ -43,7 +45,7 @@ also useful `--smt-include-get-model`. This activates the output of
 Python code can also be piped into the SDTIN of the tool. To use this, use the
 `--stdin` switch. Something like this works:
 
-    cat example/kernel_code.py | python3 -m RVerify --stdin --check
+    cat RVerify/example-rk/kernel_code.py | python3 -m RVerify --stdin --check
 	
 ### Accuracy changes of the checker
 
