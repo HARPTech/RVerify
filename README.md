@@ -23,6 +23,9 @@ virtualenv -p python3 .
 # Activate the environment
 source ./bin/activate
 
+# Install Required Packages (can take a few minutes)
+pip3 install -r python-requirements.txt
+
 # Go back to the parent directory
 cd ..
 
