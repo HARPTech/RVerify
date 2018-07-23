@@ -3,8 +3,34 @@ RVerify
 
 Verification application for regulation kernels. 
 
-Requirements
-------------
+Usage With VirtualEnv
+---------------------
+
+This approach should work well on all systems, but problems can arise with
+bleeding edge distributions.
+
+``` shell
+# Install virtualenv
+sudo apt-get install virtualenv
+
+# Download the repository
+git clone https://github.com/HARPTech/RVerify.git
+cd RVerify
+
+# Create the virtual python environment
+virtualenv -p python3 .
+
+# Activate the environment
+source ./bin/activate
+
+# Go back to the parent directory
+cd ..
+
+# Try out the examples below!
+```
+
+Requirements (Manual Installation)
+----------------------------------
 
 Install the python dependencies from `requirements.txt`. The dependencies are:
 
