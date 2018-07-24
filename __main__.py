@@ -3,6 +3,7 @@ import argparse
 import logging
 import parser
 import RVerify.parser.visitor
+import astpretty
 
 from RVerify.parser.visitor import Visitor as Visitor
 from RVerify.parser.line_lookup_table import LineLookupTable as LineLookupTable
@@ -10,6 +11,9 @@ import RVerify.parser.predefined as predefined
 
 import sys
 import typed_ast.ast3
+
+# Monkey-Patch the used ast package to typed_ast.
+astpretty.ast = typed_ast.ast3
 
 import RVerify.smt_gen as smt_gen
 
@@ -22,6 +26,7 @@ if __name__ == "__main__":
     argparser.add_argument('--stdin', action='store_true', help='Use stdin instead of file.', required=False)
     argparser.add_argument('--check', action='store_true', help='Check the given source code using the z3 SMT parser against the embedded rule-set.', default=False)
     argparser.add_argument('--print-smt', action='store_true', help='Print full generated SMT code.', default=False)
+    argparser.add_argument('--dump-ast', action='store_true', help='Dump the AST of the parsed Python code.', default=False)
     argparser.add_argument('--display-approximations', action='store_true', help='Display trigonometric approximations. Needs matplotlib.', default=False)
 
     argparser.add_argument('--smt-include-logic', action='store_true', help='Include default logic declaration.', default=True)
@@ -68,6 +73,10 @@ if __name__ == "__main__":
     # Commence Parsing
 
     astTree = typed_ast.ast3.parse(source, mode='exec')
+
+    if args.dump_ast:
+        print("AST DUMP (Excluding Line-Numbers):")
+        astpretty.pprint(astTree, indent='  ', show_offsets=False)
 
     visitor = Visitor(lineLookupTable)
     visitor.visit(astTree)
