@@ -42,22 +42,7 @@ def gen_tan_range(scale):
     return tanRange, tans
 
 def gen_atan_range(scale):
-    logSpace, c = gen_space(scale)
-
-    inverseLogSpace = limit - logSpace
-    
-    tanRange = []
-    for i in inverseLogSpace:
-        tanRange.append(np.interp(i, [0, limit], [-math.pi / 2, 0]))
-
-    for i in logSpace:
-        tanRange.append(np.interp(i, [0, limit], [0, math.pi / 2]))
-
-    tanRange.sort()
-
-    tans = []
-    for i in tanRange:
-        tans.append(math.tan(i))
+    tanRange, tans = gen_tan_range(scale)
 
     # Reverse
     tanRange.sort(reverse=True)
