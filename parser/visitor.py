@@ -76,7 +76,10 @@ class Visitor(NodeVisitor):
         self.logger.debug("Visiting Function Arguments.")
 
     def visit_Import(self, node):
-        pass
+        self.logger.debug("Visiting Import.")
+
+    def visit_Pass(self, node):
+        self.logger.debug("Visiting Pass.")
 
     @recursive
     def visit_Assign(self, node):
@@ -169,6 +172,25 @@ class Visitor(NodeVisitor):
         binop = Node("BinOp", pyline=node.lineno)
         self.addToCurrentNode(binop)
         self.active.append(binop)
+
+    def visit_BoolOp(self, node):
+        # Visit operation, which puts the operation on the
+        # stack. Gets popped at the end of the function.
+        node.op.lineno = node.lineno
+        self.visit(node.op)
+        for n in node.values:
+            self.visit(n)
+        self.active.pop()
+
+    def visit_And(self, node):
+        AndNode = Node("CMP", strrep="and", pyline=node.lineno)
+        self.addToCurrentNode(AndNode)
+        self.active.append(AndNode)
+
+    def visit_Or(self, node):
+        OrNode = Node("CMP", strrep="or", pyline=node.lineno)
+        self.addToCurrentNode(OrNode)
+        self.active.append(OrNode)
 
     @recursive
     def visit_UnaryOp(self, node):
