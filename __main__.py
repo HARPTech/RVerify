@@ -7,20 +7,10 @@ import sys
 import argparse
 
 import logging
-import parser
-import RVerify.parser.visitor
-import astpretty
-
-from RVerify.parser.visitor import Visitor as Visitor
-from RVerify.parser.line_lookup_table import LineLookupTable as LineLookupTable
-import RVerify.parser.predefined as predefined
-
-import typed_ast.ast3
-
-# Monkey-Patch the used ast package to typed_ast.
-astpretty.ast = typed_ast.ast3
 
 import RVerify.smt_gen as smt_gen
+
+from RVerify.file_checker import FileChecker
 
 if __name__ == "__main__":
     argparser = argparse.ArgumentParser(
@@ -73,19 +63,7 @@ if __name__ == "__main__":
 
     precision = args.precision
 
-    lineLookupTable = LineLookupTable(source)
-
-    # Commence Parsing
-
-    astTree = typed_ast.ast3.parse(source, mode='exec')
-
-    if args.dump_ast:
-        print("AST DUMP (Excluding Line-Numbers):")
-        astpretty.pprint(astTree, indent='  ', show_offsets=False)
-
-    visitor = Visitor(lineLookupTable)
-    visitor.visit(astTree)
-
+    # Generate approximations.
     approximations = smt_gen.generate("tan", precision)
     approximations += smt_gen.generate("atan", precision)
 
@@ -93,31 +71,22 @@ if __name__ == "__main__":
         smt_gen.generate_and_display("tan", precision)
         smt_gen.generate_and_display("atan", precision)
 
-    visitorSMT, lines, = visitor.getFullSMT()
+    # Commence Parsing
+    file_checker = FileChecker(approximations, source)
+
+    file_checker.parse()
+
+    if args.dump_ast:
+        file_checker.dump_ast()
 
     if args.check:
-        from RVerify.checker.checker import Checker as Checker
-        checker = Checker(visitor, predefined.logic + predefined.internals + approximations + visitorSMT, lines, lineLookupTable)
-        checker.check()
+        file_checker.check()
 
     if args.print_smt:
-        smt = visitorSMT
-
-        smt = approximations + smt
-
-        if args.smt_include_internals:
-            smt = predefined.internals + smt
-
-        if args.smt_include_logic:
-            smt = predefined.logic + smt
-
-        if args.smt_include_checks:
-            smt += predefined.checks 
-
-        if args.smt_include_check_sat:
-            smt += predefined.check_sat 
-
-        if args.smt_include_get_model:
-            smt += predefined.get_model
-
-        print(smt)
+        file_checker.dump_smt({
+            'internals': args.smt_include_internals,
+            'logic': args.smt_include_logic,
+            'checks': args.smt_include_checks,
+            'check_sat': args.smt_include_check_sat,
+            'get_model': args.smt_include_get_model,
+        })
