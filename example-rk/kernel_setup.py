@@ -1,5 +1,6 @@
 import sys
 
+sys.path.append("/usr/share/python3/")
 sys.path.append("/usr/local/share/python3/")
 
 import RRegistry as RR
@@ -10,7 +11,7 @@ import kernel_globals as g
 print("Created handle! Trying to connect")
 
 # Connect to default path.
-status = g.rsupport.connect("/tmp/lrt_pipe_path.pipe")
+status = g.rsupport.connect()
 if status != RS.RSupportStatus_Ok:
     print("Error while connecting: " + RS.rsupport_status_msg(status))
 
