@@ -3,14 +3,13 @@
 This module provides a SMT based checking utility to be used during
 development of regulation kernel software for the VERNER rover platform.
 """
-import sys
+import os
 import argparse
 
 import logging
 
 import RVerify.smt_gen as smt_gen
-
-from RVerify.file_checker import FileChecker
+from RVerify.watcher import Watcher
 
 if __name__ == "__main__":
     argparser = argparse.ArgumentParser(
@@ -25,6 +24,13 @@ if __name__ == "__main__":
     argparser.add_argument('--check',
                            action='store_true', default=False,
                            help='Check the given source using z3 against the embedded rule-set.')
+    argparser.add_argument('--watch',
+                           action='store_true', default=False,
+                           help='Watch the given file for changes and re-check on change.')
+    argparser.add_argument('--verbose', '-v', action='store_const', dest='loglevel',
+                           const=logging.INFO, help='Activate verbose logging.')
+    argparser.add_argument('--debug', '-d', action='store_const', dest='loglevel',
+                           const=logging.DEBUG, help='Activate development (debugging) logging.')
     argparser.add_argument('--print-smt', action='store_true', default=False,
                            help='Print full generated SMT code.')
     argparser.add_argument('--dump-ast', action='store_true', default=False,
@@ -45,34 +51,26 @@ if __name__ == "__main__":
 
     args = argparser.parse_args()
 
-    source = ""
+    logging.basicConfig(level=args.loglevel)
     
-    if args.stdin:
-        # Read the source from standard input.
-        source = sys.stdin.read()
-
-    if args.f:
-        # Read from file.
-        filename = args.f 
-        with open(filename) as inFile:
-            source = inFile.read()
-
-    if source == "":
+    if not args.stdin and not args.f:
         logging.error("Must provide source as input either through file or stdin!")
         exit(-1)
 
-    # Filter source for keyword RVERIFY_BEGIN
+    if args.stdin and args.watch:
+        logging.error("Cannot watch for changes on stdin!")
+        
+    path = None
+    if args.f:
+        path = args.f
 
-    phraseFound = False
-    filteredSource = ""
-    for line in source.splitlines():
-        if phraseFound:
-            filteredSource += line + "\n"
-        if "RVERIFY_BEGIN" in line:
-            phraseFound = True
+        if not os.path.exists(path):
+            logging.error("File does not exist!")
+            exit(-2)
 
-    if phraseFound:
-        source = filteredSource
+        if not os.path.isfile(path):
+            logging.error("Must provide a file, not a directory!")
+            exit(-2)
 
     precision = args.precision
 
@@ -84,22 +82,19 @@ if __name__ == "__main__":
         smt_gen.generate_and_display("tan", precision)
         smt_gen.generate_and_display("atan", precision)
 
-    # Commence Parsing
-    file_checker = FileChecker(approximations, source)
-
-    file_checker.parse()
-
-    if args.dump_ast:
-        file_checker.dump_ast()
-
-    if args.check:
-        file_checker.check()
-
-    if args.print_smt:
-        file_checker.dump_smt({
+    watcher = Watcher(approximations, path,
+        args.dump_ast,
+        args.print_smt,
+        args.check,
+        {
             'internals': args.smt_include_internals,
             'logic': args.smt_include_logic,
             'checks': args.smt_include_checks,
             'check_sat': args.smt_include_check_sat,
             'get_model': args.smt_include_get_model,
         })
+
+    if args.watch:
+        watcher.watch()
+    else:
+        watcher.run_checker()

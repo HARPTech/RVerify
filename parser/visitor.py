@@ -10,8 +10,7 @@ from .statement_tree import StatementTree as StatementTree
 class Visitor(NodeVisitor):
     def __init__(self, lineLookupTable = None):
         self.logger = logging.getLogger('Visitor')
-        self.logger.setLevel(logging.DEBUG)
-        self.logger.info("Created Visitor instance.")
+        self.logger.debug("Created Visitor instance.")
         self.active = []
         self.tree = StatementTree(lineLookupTable)
         self.list_expected = 0
@@ -241,7 +240,7 @@ class Visitor(NodeVisitor):
 
     @recursive
     def visit_List(self, node):
-        self.logger.info("Visiting List!")
+        self.logger.debug("Visiting List!")
         if self.list_expected > 0:
             # Lists are visited recursively.
             pass

@@ -37,7 +37,7 @@ class FileChecker():
         self.visitor = Visitor(self.line_lookup_table)
         self.visitor.visit(self.ast_tree)
 
-        self.visitor_smt, self.lines, = self.visitor.getFullSMT()
+        self.visitor_smt, self.lines = self.visitor.getFullSMT()
 
     def check(self):
         """Check the embedded source using the generated SMT formulas.
