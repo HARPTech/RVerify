@@ -1,3 +1,5 @@
+from . import result as res
+
 import logging
 from typing import List
 import z3
@@ -93,7 +95,7 @@ class Checker():
                             "_servo_fr_",
                             "_servo_rl_",
                             "_servo_rr_"
-                            ]):
+                            ]) -> res.Result:
         # Checks the tree using the z3 SMT parser.
         s = z3.Solver()
 
@@ -105,7 +107,7 @@ class Checker():
             s.add(expression)
         except z3.Z3Exception as e:
             self.logger.error("Invalid SMT produced!")
-            return False
+            return res.Result(passed=False,msg="Invalid SMT")
 
         # Pre-Check if the program itself passes.
         check = s.check().r > 0
@@ -120,17 +122,20 @@ class Checker():
                 s.add(expression)
             except z3.Z3Exception as e:
                 self.logger.error("Invalid SMT produced!")
-                return False
+                return res.Result(passed=False,msg="Invalid SMT")
 
             # Pre-Check if there are any problems with the assertions.
             check = s.check().r > 0
 
             if check is False:
                 print("SUCCESS! NO FAILURE STATES DETECTED!")
+                return res.Result(passed=True)
             else:
                 print("FAILURE STATES DETECTED!")
 
                 # Print only important variables.
+                result = res.Result(passed=False)
+
                 m = s.model()
 
                 declarations = m.decls()
@@ -147,6 +152,9 @@ class Checker():
 
                 for decl in printed_decls:
                     print("  " + decl.name() + " = " + str(m[decl]) + ",")
+                    result.add_decl(decl.name(), str(m[decl]))
+
+                return result
 
         else:
             # Begin debugging. This happens by removing one line at a time.
@@ -155,4 +163,8 @@ class Checker():
             if not resultAsExpected:
                 pyline = self.lineLookupTable.getLineInPy(line)
                 print("ERROR: Line in Python: " + str(pyline))
-                print(self.lineLookupTable.getSurroundingLines(pyline))
+                surroundingLines = self.lineLookupTable.getSurroundingLines(pyline)
+                print(surroundingLines)
+                return res.Result(passed=False,msg="Code not passed!\n" + surroundingLines)
+
+            return res.Result(passed=False,msg="Code not passed!")
