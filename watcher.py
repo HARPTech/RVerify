@@ -2,6 +2,7 @@ import sys
 import os
 import time
 import logging
+import subprocess
 from abc import ABCMeta, abstractmethod
 from typing import Dict
 
@@ -41,6 +42,7 @@ class CheckingObserver(FileSystemEventHandler):
 class Watcher(RunCheckerInterface):
     def __init__(self, approximations: str, path: str=None, dump_ast: bool=False,
                  print_smt: bool=False, check: bool=True, print_complete_model: bool=False,
+                 show_in_rtest:bool=False,rtest_executable:str="RTest",
                  smt_included: Dict[str,bool]=None):
         self.approximations = approximations
         self.path = path
@@ -54,6 +56,12 @@ class Watcher(RunCheckerInterface):
         self.check = check
         self.print_complete_model = print_complete_model
         self.smt_included = smt_included
+        self.rtest = None
+        if show_in_rtest:
+            self.rtest = subprocess.Popen(rtest_executable,
+                                          stdin=subprocess.PIPE,
+                                          encoding="utf-8",
+                                          universal_newlines=True)
 
     def get_source(self):
         """Gets the source code from the supplied file or stdin into the source field.
@@ -91,7 +99,10 @@ class Watcher(RunCheckerInterface):
             file_checker.dump_ast()
 
         if self.check:
-            file_checker.check(self.print_complete_model)
+            result = file_checker.check(self.print_complete_model)
+            if self.rtest is not None:
+                # Visualise in RTest using stdin API.
+                print(result.as_rtest_input(), file=self.rtest.stdin, flush=True)
 
         if self.print_smt:
             if self.smt_included is None:
@@ -132,3 +143,6 @@ class Watcher(RunCheckerInterface):
             self.logger.info("Stopped watching because of keyboard interrupt.")
 
         self.observer.join()
+
+        if self.rtest:
+            self.rtest.communicate(input="<exit />")

@@ -38,7 +38,11 @@ if __name__ == "__main__":
     argparser.add_argument('--display-approximations', action='store_true', default=False,
                            help='Display trigonometric approximations. Needs matplotlib.')
     argparser.add_argument('--print-complete-model', action='store_true', default=False,
-                           help="Displays values for all variables in case a model was found.")
+                           help='Displays values for all variables in case a model was found.')
+    argparser.add_argument('--visualise-in-rtest', action='store_true', default=False,
+                           help='Visualises results in the RTest application. Has to be in PATH or set using --rtest-executable.')
+    argparser.add_argument('--rtest-executable', default="RTest", required=False,
+                           help='Executable of the RTest application.')
 
     argparser.add_argument('--smt-include-logic', action='store_true',
                            help='Include default logic declaration.', default=True)
@@ -89,6 +93,8 @@ if __name__ == "__main__":
         args.print_smt,
         args.check,
         args.print_complete_model,
+        args.visualise_in_rtest,
+        args.rtest_executable,
         {
             'internals': args.smt_include_internals,
             'logic': args.smt_include_logic,

@@ -129,12 +129,12 @@ class Checker():
 
             if check is False:
                 print("SUCCESS! NO FAILURE STATES DETECTED!")
-                return res.Result(passed=True)
+                return res.Result(passed=True,msg="Successfully checked!")
             else:
                 print("FAILURE STATES DETECTED!")
 
                 # Print only important variables.
-                result = res.Result(passed=False)
+                result = res.Result(passed=False, msg="Failure states detected!")
 
                 m = s.model()
 
@@ -150,9 +150,13 @@ class Checker():
                 # Sort by keys.
                 printed_decls.sort(key=lambda x: x.name())
 
+                result.msg += "\n"
+
                 for decl in printed_decls:
-                    print("  " + decl.name() + " = " + str(m[decl]) + ",")
+                    msg = "  " + decl.name() + " = " + str(m[decl])
+                    print(msg)
                     result.add_decl(decl.name(), str(m[decl]))
+                    result.msg += msg + "\n"
 
                 return result
 

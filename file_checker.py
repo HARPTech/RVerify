@@ -10,6 +10,7 @@ from RVerify.parser.visitor import Visitor as Visitor
 from RVerify.parser.line_lookup_table import LineLookupTable as LineLookupTable
 import typed_ast.ast3
 from RVerify.checker.checker import Checker
+from RVerify.checker.result import Result
 import RVerify.parser.predefined as predefined
 
 # Monkey-Patch the used ast package to typed_ast.
@@ -24,6 +25,7 @@ class FileChecker():
         self.approximations = approximations
         self.visitor_smt = ""
         self.lines = 0
+        self.logger = logging.getLogger("FileChecker")
 
     def parse(self):
         """Parses the embedded source into an AST and transform the AST into SMT formulas.
@@ -43,7 +45,7 @@ class FileChecker():
             self.logger.error("Could not parse source file! Error during parsing. Error:")
             self.logger.error(e)
 
-    def check(self, print_complete_model:bool=False):
+    def check(self, print_complete_model:bool=False) -> Result:
         """Check the embedded source using the generated SMT formulas.
         """
         checker = Checker(self.visitor,
@@ -53,9 +55,9 @@ class FileChecker():
                           self.line_lookup_table)
 
         if print_complete_model:
-            checker.check(important_declarations=None)
+            return checker.check(important_declarations=None)
         else:
-            checker.check()
+            return checker.check()
 
     def dump_ast(self):
         """Prints the AST read from the file.
