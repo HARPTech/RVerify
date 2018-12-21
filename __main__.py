@@ -14,21 +14,34 @@ from RVerify.file_checker import FileChecker
 
 if __name__ == "__main__":
     argparser = argparse.ArgumentParser(
-        description="Verify regulation kernels using a SMT checking backend adaptive complexity regulation.")
+        description="Verify regulation kernels using a SMT and adaptive complexity regulation.")
 
     argparser.add_argument('-f', help='Input file', required=False)
-    argparser.add_argument('--precision', help='Precision of the trigonometric approximations.', required=False, default=1, type=float)
-    argparser.add_argument('--stdin', action='store_true', help='Use stdin instead of file.', required=False)
-    argparser.add_argument('--check', action='store_true', help='Check the given source code using the z3 SMT parser against the embedded rule-set.', default=False)
-    argparser.add_argument('--print-smt', action='store_true', help='Print full generated SMT code.', default=False)
-    argparser.add_argument('--dump-ast', action='store_true', help='Dump the AST of the parsed Python code.', default=False)
-    argparser.add_argument('--display-approximations', action='store_true', help='Display trigonometric approximations. Needs matplotlib.', default=False)
+    argparser.add_argument('--precision',
+                           help='Precision of the trigonometric approximations.',
+                           required=False, default=1, type=float)
+    argparser.add_argument('--stdin', action='store_true',
+                           help='Use stdin instead of file.', required=False)
+    argparser.add_argument('--check',
+                           action='store_true', default=False,
+                           help='Check the given source using z3 against the embedded rule-set.')
+    argparser.add_argument('--print-smt', action='store_true', default=False,
+                           help='Print full generated SMT code.')
+    argparser.add_argument('--dump-ast', action='store_true', default=False,
+                           help='Dump the AST of the parsed Python code.')
+    argparser.add_argument('--display-approximations', action='store_true', default=False,
+                           help='Display trigonometric approximations. Needs matplotlib.')
 
-    argparser.add_argument('--smt-include-logic', action='store_true', help='Include default logic declaration.', default=True)
-    argparser.add_argument('--smt-include-internals', action='store_true', help='Include predefined internals.', default=True)
-    argparser.add_argument('--smt-include-checks', action='store_true', help='Include checks', default=True)
-    argparser.add_argument('--smt-include-check-sat', action='store_true', help='Include (check-sat)', default=True)
-    argparser.add_argument('--smt-include-get-model', action='store_true', help='Include (get-model)', default=False)
+    argparser.add_argument('--smt-include-logic', action='store_true',
+                           help='Include default logic declaration.', default=True)
+    argparser.add_argument('--smt-include-internals', action='store_true',
+                           help='Include predefined internals.', default=True)
+    argparser.add_argument('--smt-include-checks', action='store_true',
+                           help='Include checks', default=True)
+    argparser.add_argument('--smt-include-check-sat', action='store_true',
+                           help='Include (check-sat)', default=True)
+    argparser.add_argument('--smt-include-get-model', action='store_true',
+                           help='Include (get-model)', default=False)
 
     args = argparser.parse_args()
 
