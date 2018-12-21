@@ -1,4 +1,5 @@
 import logging
+from typing import List
 import z3
 
 import multiprocessing
@@ -81,7 +82,18 @@ class Checker():
 
         return True, 0, None, None
 
-    def check(self):
+    def check(self, important_declarations: List[str] = [
+                            "_forward_velocity_",
+                            "_steer_direction_",
+                            "_motor_fl_",
+                            "_motor_fr_",
+                            "_motor_rl_",
+                            "_motor_rr_",
+                            "_servo_fl_",
+                            "_servo_fr_",
+                            "_servo_rl_",
+                            "_servo_rr_"
+                            ]):
         # Checks the tree using the z3 SMT parser.
         s = z3.Solver()
 
@@ -117,7 +129,24 @@ class Checker():
                 print("SUCCESS! NO FAILURE STATES DETECTED!")
             else:
                 print("FAILURE STATES DETECTED!")
-                print(s.model())
+
+                # Print only important variables.
+                m = s.model()
+
+                declarations = m.decls()
+
+                printed_decls = []
+
+                for decl in declarations:
+                    if ((important_declarations is None or decl.name() in important_declarations)
+                        and not "!" in decl.name() and not "tan" in decl.name()):
+                        printed_decls.append(decl)
+
+                # Sort by keys.
+                printed_decls.sort(key=lambda x: x.name())
+
+                for decl in printed_decls:
+                    print("  " + decl.name() + " = " + str(m[decl]) + ",")
 
         else:
             # Begin debugging. This happens by removing one line at a time.

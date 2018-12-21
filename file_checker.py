@@ -39,7 +39,7 @@ class FileChecker():
 
         self.visitor_smt, self.lines = self.visitor.getFullSMT()
 
-    def check(self):
+    def check(self, print_complete_model:bool=False):
         """Check the embedded source using the generated SMT formulas.
         """
         checker = Checker(self.visitor,
@@ -47,7 +47,11 @@ class FileChecker():
                           + self.approximations + self.visitor_smt,
                           self.lines,
                           self.line_lookup_table)
-        checker.check()
+
+        if print_complete_model:
+            checker.check(important_declarations=None)
+        else:
+            checker.check()
 
     def dump_ast(self):
         """Prints the AST read from the file.

@@ -37,6 +37,8 @@ if __name__ == "__main__":
                            help='Dump the AST of the parsed Python code.')
     argparser.add_argument('--display-approximations', action='store_true', default=False,
                            help='Display trigonometric approximations. Needs matplotlib.')
+    argparser.add_argument('--print-complete-model', action='store_true', default=False,
+                           help="Displays values for all variables in case a model was found.")
 
     argparser.add_argument('--smt-include-logic', action='store_true',
                            help='Include default logic declaration.', default=True)
@@ -86,6 +88,7 @@ if __name__ == "__main__":
         args.dump_ast,
         args.print_smt,
         args.check,
+        args.print_complete_model,
         {
             'internals': args.smt_include_internals,
             'logic': args.smt_include_logic,

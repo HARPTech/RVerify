@@ -40,7 +40,7 @@ class CheckingObserver(FileSystemEventHandler):
 
 class Watcher(RunCheckerInterface):
     def __init__(self, approximations: str, path: str=None, dump_ast: bool=False,
-                 print_smt: bool=False, check: bool=True,
+                 print_smt: bool=False, check: bool=True, print_complete_model: bool=False,
                  smt_included: Dict[str,bool]=None):
         self.approximations = approximations
         self.path = path
@@ -52,6 +52,7 @@ class Watcher(RunCheckerInterface):
         self.dump_ast = dump_ast
         self.print_smt = print_smt
         self.check = check
+        self.print_complete_model = print_complete_model
         self.smt_included = smt_included
 
     def get_source(self):
@@ -90,7 +91,7 @@ class Watcher(RunCheckerInterface):
             file_checker.dump_ast()
 
         if self.check:
-            file_checker.check()
+            file_checker.check(self.print_complete_model)
 
         if self.print_smt:
             if self.smt_included is None:
