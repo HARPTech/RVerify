@@ -1,3 +1,9 @@
+"""Checker for VERNER rover regulation kernels.
+
+This module provides a SMT based checking utility to be used during
+development of regulation kernel software for the VERNER rover platform.
+"""
+import sys
 import argparse
 
 import logging
@@ -9,7 +15,6 @@ from RVerify.parser.visitor import Visitor as Visitor
 from RVerify.parser.line_lookup_table import LineLookupTable as LineLookupTable
 import RVerify.parser.predefined as predefined
 
-import sys
 import typed_ast.ast3
 
 # Monkey-Patch the used ast package to typed_ast.
