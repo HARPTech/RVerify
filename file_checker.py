@@ -30,14 +30,18 @@ class FileChecker():
 
         To update the internal source, update the source field with new contents.
         """
-        self.ast_tree = typed_ast.ast3.parse(self.source, mode='exec')
+        try:
+            self.ast_tree = typed_ast.ast3.parse(self.source, mode='exec')
 
-        self.line_lookup_table = LineLookupTable(self.source)
+            self.line_lookup_table = LineLookupTable(self.source)
 
-        self.visitor = Visitor(self.line_lookup_table)
-        self.visitor.visit(self.ast_tree)
+            self.visitor = Visitor(self.line_lookup_table)
+            self.visitor.visit(self.ast_tree)
 
-        self.visitor_smt, self.lines = self.visitor.getFullSMT()
+            self.visitor_smt, self.lines = self.visitor.getFullSMT()
+        except Exception as e:
+            self.logger.error("Could not parse source file! Error during parsing. Error:")
+            self.logger.error(e)
 
     def check(self, print_complete_model:bool=False):
         """Check the embedded source using the generated SMT formulas.
