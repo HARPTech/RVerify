@@ -33,6 +33,12 @@ while(True):
     motor_rl = int(forward_velocity)
     motor_rr = int(forward_velocity)
 
+    if forward_velocity < -180:
+        steer_direction = steer_direction * 0.7
+
+    if forward_velocity > 180:
+        steer_direction = steer_direction * 0.7
+
     # Calculate Wheel Positions
     # =========================
 
