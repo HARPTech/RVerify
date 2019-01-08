@@ -12,6 +12,7 @@ import typed_ast.ast3
 from RVerify.checker.checker import Checker
 from RVerify.checker.result import Result
 import RVerify.parser.predefined as predefined
+import RVerify.checker.expression_builder as ex
 
 # Monkey-Patch the used ast package to typed_ast.
 astpretty.ast = typed_ast.ast3
@@ -76,7 +77,8 @@ class FileChecker():
             smt = predefined.logic + smt
 
         if included["checks"]:
-            smt += predefined.checks
+            builder = ex.ExpressionBuilder()
+            smt += builder.buildSMT(0)
 
         if included["check_sat"]:
             smt += predefined.check_sat

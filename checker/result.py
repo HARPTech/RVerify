@@ -1,3 +1,5 @@
+from xml.sax.saxutils import escape
+
 class Result:
     def __init__(self, passed:bool,msg:str="Success!"):
         self.decls = {}
@@ -23,7 +25,8 @@ class Result:
         for key,val in self.decls.items():
             s += "<set key='" + key + "' val='" + val + "' />\n"
 
-        s += "<status>" + self.msg + "</status>\n"
+        # Replace important XML chars.
+        s += "<status>" + escape(self.msg) + "</status>\n"
 
         return s
 

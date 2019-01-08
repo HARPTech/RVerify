@@ -1,4 +1,5 @@
 from . import result as res
+from . import expression_builder as ex
 
 import logging
 from typing import List
@@ -31,6 +32,7 @@ class Checker():
         # Context Creation
         ctx = z3.Context()
         model = None
+        check = None
 
         sat = False
         try:
@@ -49,7 +51,7 @@ class Checker():
         except z3.Z3Exception as e:
             self.logger.error("Invalid SMT!")
 
-        return sat, endLine, model, ctx
+        return sat, endLine, model, ctx, check
 
     def debugStatement(self, statement, expectedSat, expanderGenerator=None):
         """Spawns as many threads as the current computer has CPUs and analyses the given statements line-per-line."""
@@ -78,7 +80,7 @@ class Checker():
 
         # Print results.
         for future in resultFutures:
-            sat, line, model, ctx = future.result()
+            sat, line, model, ctx, check = future.result()
             if sat != expectedSat:
                 return False, line, model, ctx
 
@@ -94,8 +96,11 @@ class Checker():
                             "_servo_fl_",
                             "_servo_fr_",
                             "_servo_rl_",
-                            "_servo_rr_"
-                            ]) -> res.Result:
+                            "_servo_rr_",
+                            ],
+              do_detailed_analysis: bool = True,
+              check_categories: str = "",
+              print_smt: bool = False) -> res.Result:
         # Checks the tree using the z3 SMT parser.
         s = z3.Solver()
 
@@ -116,9 +121,15 @@ class Checker():
             # Code passes, begin checking failure conditions.
             print("CODE SOUNDNESS PASSED, CHECK FAILURE STATES")
             s = z3.Solver()
+            builder = ex.ExpressionBuilder()
 
+            smt = self.visitorSMT + builder.buildSMT(0)
+
+            if print_smt:
+                print(smt)
+            
             try:
-                expression = z3.parse_smt2_string(self.visitorSMT + predefined.checks)
+                expression = z3.parse_smt2_string(smt)
                 s.add(expression)
             except z3.Z3Exception as e:
                 self.logger.error("Invalid SMT produced!")
@@ -151,12 +162,24 @@ class Checker():
                 printed_decls.sort(key=lambda x: x.name())
 
                 result.msg += "\n"
+                values = []
 
                 for decl in printed_decls:
                     msg = "  " + decl.name() + " = " + str(m[decl])
+                    # Get all values as numbers.
+                    values.append([decl.name(), int(str(m[decl]))])
                     print(msg)
                     result.add_decl(decl.name(), str(m[decl]))
                     result.msg += msg + "\n"
+
+                # Get detailed information about WHICH check failed.
+                if do_detailed_analysis:
+                    # The detailed analysis detects the exact error that made this situation possible.
+                    matches = builder.checkSMT(builder.buildSMTIntAssertChain(values), self.checkSolver, True)
+                    result.msg += "Found Error: \n"
+                    for match in matches:
+                        if not match['sat']:
+                            result.msg += match['msg']
 
                 return result
 
