@@ -214,6 +214,11 @@ class Visitor(NodeVisitor):
         op = Node("OP", "- ")
         self.addToCurrentNode(op)
 
+    def visit_UAdd(self, node):
+        self.logger.debug("Visiting UAdd!")
+        op = Node("OP", "+ ")
+        self.addToCurrentNode(op)
+
     def visit_Mult(self, node):
         self.logger.debug("Visiting Mult!")
         op = Node("OP", "* ")
